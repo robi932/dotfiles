@@ -1,8 +1,6 @@
 # shortcut to this dotfiles path is $ZSH
-export ZSH=$HOME/.dotfiles
-
-# your project folder that we can `c [tab]` to
-export PROJECTS=~/Code
+export DOTFILES=$HOME/.dotfiles
+export ZSH=$HOME/.oh-my-zsh
 
 # Stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but
@@ -14,7 +12,7 @@ fi
 
 # all of our zsh files
 typeset -U config_files
-config_files=($ZSH/**/*.zsh)
+config_files=($DOTFILES/**/*.zsh)
 
 # load the path files
 for file in ${(M)config_files:#*/path.zsh}
@@ -28,23 +26,66 @@ do
   source $file
 done
 
-# initialize autocomplete here, otherwise functions won't be loaded
-autoload -U compinit
-compinit
+plugins=(
+  git
+)
 
-# load every completion after autocomplete loads
-for file in ${(M)config_files:#*/completion.zsh}
-do
-  source $file
-done
+ZSH_THEME="robbyrussell"
+source $ZSH/oh-my-zsh.sh
 
-unset config_files
+alias zshconfig="atom ~/.zshrc"
+alias ohmyzsh="atom ~/.oh-my-zsh"
+kruby() {
+  kill -9 $(lsof -n -iTCP:3000 -sTCP:LISTEN -t)
+}
+knode() {
+  kill -9 $(lsof -n -iTCP:8080 -sTCP:LISTEN -t)
+}
 
-# Better history
-# Credits to https://coderwall.com/p/jpj_6q/zsh-better-history-searching-with-arrow-keys
-autoload -U up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search # Up
-bindkey "^[[B" down-line-or-beginning-search # Down
+killserver() {
+  kill -9 $(lsof -n -iTCP:"$1" -sTCP:LISTEN -t)
+}
+
+export N_PREFIX="$HOME/n"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"  # Added by n-install (see http://git.io/n-install-repo).
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/robert/Downloads/google-cloud-sdk/path.zsh.inc' ]; then source '/Users/robert/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/robert/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then source '/Users/robert/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+function alias_project {
+   if [ -z "$1" ]
+   then
+     echo "Alias name is missing"
+   else
+     echo "alias $1='cd $(pwd)'" >> $HOME/.bash_aliases
+     source $HOME/.bash_aliases
+     echo "OK"
+   fi
+}
+
+if [ -f ~/.bash_aliases ]; then
+  . ~/.bash_aliases
+fi
+
+code () {
+    if [[ $# = 0 ]]
+    then
+        open -a "Visual Studio Code"
+    else
+        [[ $1 = /* ]] && F="$1" || F="$PWD/${1#./}"
+        open -a "Visual Studio Code" --args "$F"
+    fi
+}
+
+function gl {
+  git pull --rebase --autostash
+}
+
+function reset-cola {
+  rm -rf ~/.config/git-cola
+}

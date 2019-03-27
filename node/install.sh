@@ -1,7 +1,8 @@
-if test ! $(which spoof)
+if test ! $(which node)
 then
-  if test $(which npm)
+  curl -L https://git.io/n-install | bash
+  if test $(which yarn)
   then
-    sudo npm install spoof -g
+    npm install yarn -g
   fi
 fi
